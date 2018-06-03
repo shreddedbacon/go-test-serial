@@ -32,16 +32,15 @@ func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
     I2CSlot: i2cSlot,
     PowerStatus: powerStatus,
   }
-  result, err := json.Marshal(jsonData)
-  if err != nil {
-    log.Println(err)
+  result, err2 := json.Marshal(jsonData)
+  if err2 != nil {
+    log.Println(err2)
   }
-  log.Printf("Result: %v", string(result))
-  _, err := sm.ser.Write([]byte(result+"\n"))
+  _, err := sm.ser.Write([]byte(string(result)+"\n"))
   if err != nil {
     //fmt.Println(err)
   }
-  w.Write([]byte(sendText+"\n"))
+  w.Write([]byte(string(result)+"\n"))
 }
 
 /* create ser man */
