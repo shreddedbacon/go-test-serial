@@ -47,6 +47,30 @@ type Acceptance struct {
 var greensKeeper = ""
 var greensKeeperToken = ""
 
+func main() {
+  greensKeeper = os.Getenv("GK_SERVER")
+  greensKeeperToken = os.Getenv("GK_TOKEN")
+  if greensKeeper == "" {
+    log.Fatalln("GK_SERVER env var not set")
+  }
+  if greensKeeperToken == "" {
+    log.Fatalln("GK_TOKEN env var not set")
+  }
+
+  serman, err := NewSerMan()
+  if err != nil {
+    fmt.Println(err)
+  }
+
+	go readSer(serman.ser, err)
+
+  r := mux.NewRouter()
+  r.HandleFunc("/api/v1/power/{i2cAddress}/{i2cSlot}/{powerStatus}", serman.sentToSer).Methods("GET")
+  log.Println("Ready to serve consoles!")
+  log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", 8585), r))
+  serman.ser.Close()
+}
+
 func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
   urlvars := mux.Vars(r)
   i2cAddress, _ := strconv.Atoi(urlvars["i2cAddress"])
@@ -82,30 +106,6 @@ func NewSerMan() (*serManager, error) {
   return newInv, nil
 }
 
-func main() {
-  greensKeeper = os.Getenv("GK_SERVER")
-  greensKeeperToken = os.Getenv("GK_TOKEN")
-  if greensKeeper == "" {
-    log.Fatalln("GK_SERVER env var not set")
-  }
-  if greensKeeperToken == "" {
-    log.Fatalln("GK_TOKEN env var not set")
-  }
-
-  serman, err := NewSerMan()
-  if err != nil {
-    fmt.Println(err)
-  }
-
-	go readSer(serman.ser, err)
-
-  r := mux.NewRouter()
-  r.HandleFunc("/api/v1/power/{i2cAddress}/{i2cSlot}/{powerStatus}", serman.sentToSer).Methods("GET")
-  log.Println("Ready to serve consoles!")
-  log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", 8585), r))
-  serman.ser.Close()
-}
-
 func readSer(s *serial.Port, err error) {
   for {
     buf := make([]byte, 40)
@@ -122,9 +122,7 @@ func readSer(s *serial.Port, err error) {
       }
       //fmt.Println(string(buf[:n]))
       content = append(content, buf[:n]...)
-      //fmt.Println(n)
     }
-    //fmt.Println(string(content))
     if len(content) != 0 {
       fmt.Println(strings.TrimSpace(string(content)))
       slotAddress := SlotAddress{}
