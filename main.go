@@ -24,13 +24,10 @@ type SlotPower struct {
 
 func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
   urlvars := mux.Vars(r)
-  i2cAddress := urlvars["i2cAddress"]
-  i2cSlot := urlvars["i2cSlot"]
-  powerStatus := urlvars["powerStatus"]
   jsonData := SlotPower{
-    I2CAddress: i2cAddress,
-    I2CSlot: i2cSlot,
-    PowerStatus: powerStatus,
+    I2CAddress: urlvars["i2cAddress"],
+    I2CSlot: urlvars["i2cSlot"],
+    PowerStatus: urlvars["powerStatus"],
   }
   result, err2 := json.Marshal(jsonData)
   if err2 != nil {
