@@ -16,11 +16,13 @@ type appContext struct {
 }
 
 func (ah *appContext) sentToSer(w http.ResponseWriter, r *http.Request) {
-  _, err := ah.ser.Write([]byte("bobtestbob\n"))
+  urlvars := mux.Vars(r)
+  sendText := urlvars["sendText"]
+  _, err := ah.ser.Write([]byte(sendText+"\n"))
   if err != nil {
     //fmt.Println(err)
   }
-  w.Write([]byte("return\n"))
+  w.Write([]byte(sendText+"\n"))
 }
 
 /* create ser man */
@@ -46,7 +48,7 @@ func main() {
 	go readSer(serman.ser, err)
 
   r := mux.NewRouter()
-  r.HandleFunc("/api/v1/consoles", serman.sentToSer).Methods("GET")
+  r.HandleFunc("/api/v1/consoles/{sendText}", serman.sentToSer).Methods("GET")
   log.Println("Ready to serve consoles!")
   log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", 8585), r))
   serman.ser.Close()
