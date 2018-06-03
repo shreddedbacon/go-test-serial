@@ -143,8 +143,8 @@ func readSer(s *serial.Port, err error) {
       if err2 != nil {
         log.Println(err2)
       }
-      log.Println(string(slotAddress.I2CAddress))
-      log.Println(string(slotAddress.I2CSlot))
+      log.Println(slotAddress.I2CAddress)
+      log.Println(slotAddress.I2CSlot)
       req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/caddydata/i2c/" + string(slotAddress.I2CAddress) + "/slot/" + string(slotAddress.I2CSlot), bytes.NewBuffer(result))
       //req.Header.Add("Authorization", "Bearer "+token)
       req.Header.Add("apikey", token)
