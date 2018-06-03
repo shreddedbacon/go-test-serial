@@ -6,20 +6,38 @@ import (
   "net/http"
   "log"
   "strings"
-
+  "encoding/json"
 
 	"github.com/tarm/serial"
   "github.com/gorilla/mux"
 )
 
-type appContext struct {
+type serManager struct {
   ser *serial.Port
 }
 
-func (ah *appContext) sentToSer(w http.ResponseWriter, r *http.Request) {
+type SlotPower struct {
+  I2CAddress        string  `json:"i2caddress"`
+  I2CSlot        string  `json:"i2slot"`
+  PowerStatus        string  `json:"powerstatus"`
+}
+
+func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
   urlvars := mux.Vars(r)
-  sendText := urlvars["sendText"]
-  _, err := ah.ser.Write([]byte(sendText+"\n"))
+  i2cAddress := urlvars["i2cAddress"]
+  i2cSlot := urlvars["i2cSlot"]
+  powerStatus := urlvars["powerStatus"]
+  jsonData := SlotPower{
+    I2CAddress: i2cAddress,
+    I2CSlot: i2cSlot,
+    PowerStatus: powerStatus,
+  }
+  result, err := json.Marshal(jsonData)
+  if err != nil {
+    log.Println(err)
+  }
+  log.Printf("Result: %v", string(result))
+  _, err := sm.ser.Write([]byte(result+"\n"))
   if err != nil {
     //fmt.Println(err)
   }
@@ -27,13 +45,13 @@ func (ah *appContext) sentToSer(w http.ResponseWriter, r *http.Request) {
 }
 
 /* create ser man */
-func NewSerMan() (*appContext, error) {
+func NewSerMan() (*serManager, error) {
   c := &serial.Config{Name: "/dev/ttyS0", Baud: 9600, ReadTimeout: time.Millisecond * 500}
   s, err := serial.OpenPort(c)
   if err != nil {
     fmt.Println(err)
   }
-  newInv := &appContext{
+  newInv := &serManager{
     ser:                 s,
   }
   return newInv, nil
@@ -48,7 +66,7 @@ func main() {
 	go readSer(serman.ser, err)
 
   r := mux.NewRouter()
-  r.HandleFunc("/api/v1/consoles/{sendText}", serman.sentToSer).Methods("GET")
+  r.HandleFunc("/api/v1/power/{i2cAddress}/{i2cSlot}/{powerStatus}", serman.sentToSer).Methods("GET")
   log.Println("Ready to serve consoles!")
   log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", 8585), r))
   serman.ser.Close()
@@ -56,8 +74,6 @@ func main() {
 
 func readSer(s *serial.Port, err error) {
   for {
-    /*time.Sleep(time.Second / 2)*/
-
     buf := make([]byte, 40)
     var content []byte
     for {
