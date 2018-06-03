@@ -22,7 +22,7 @@ type serManager struct {
 type SlotPower struct {
   I2CAddress        int  `json:"i2caddress"`
   I2CSlot        int  `json:"i2slot"`
-  PowerStatus        int  `json:"powerstatus"`
+  PowerStatus        int  `json:"powercon"`
 }
 
 type SlotAddress struct {
