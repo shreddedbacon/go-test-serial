@@ -61,6 +61,7 @@ func readSer(s *serial.Port, err error) {
     time.Sleep(time.Second / 2)*/
 
     buf := make([]byte, 40)
+    var content []byte
     for {
       n, err := s.Read(buf)
 
@@ -72,10 +73,12 @@ func readSer(s *serial.Port, err error) {
         break
       }
       //fmt.Println(string(buf[:n]))
-      fmt.Println(n)
+      content = append(content, buf[:n]...)
+      //fmt.Println(n)
     }
-    /*if string(buf) != "" {
-      fmt.Println(string(buf))
-    }*/
+    //fmt.Println(string(content))
+    if len(content) != 0 {
+      fmt.Println(string(content))
+    }
   }
 }
