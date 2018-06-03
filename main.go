@@ -9,6 +9,7 @@ import (
   "encoding/json"
   "os"
   "bytes"
+  "strconv"
 
 	"github.com/tarm/serial"
   "github.com/gorilla/mux"
@@ -48,10 +49,13 @@ var greensKeeperToken = ""
 
 func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
   urlvars := mux.Vars(r)
+  i2cAddress, _ := strconv.Atoi(urlvars["i2cAddress"])
+  i2cSlot, _ := strconv.Atoi(urlvars["i2cSlot"])
+  powerStatus, _ := strconv.Atoi(urlvars["powerStatus"])
   jsonData := SlotPower{
-    I2CAddress: urlvars["i2cAddress"],
-    I2CSlot: urlvars["i2cSlot"],
-    PowerStatus: urlvars["powerStatus"],
+    I2CAddress: i2cAddress,
+    I2CSlot: i2cSlot,
+    PowerStatus: powerStatus,
   }
   result, err2 := json.Marshal(jsonData)
   if err2 != nil {
@@ -139,7 +143,7 @@ func readSer(s *serial.Port, err error) {
       if err2 != nil {
         log.Println(err2)
       }
-      req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/caddydata/i2c/" + slotAddress.I2CAddress + "/slot/" + slotAddress.I2CSlot, bytes.NewBuffer(result))
+      req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/caddydata/i2c/" + string(slotAddress.I2CAddress) + "/slot/" + string(slotAddress.I2CSlot), bytes.NewBuffer(result))
       //req.Header.Add("Authorization", "Bearer "+token)
       req.Header.Add("apikey", token)
       req.Header.Set("Content-Type", "application/json")
