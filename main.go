@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"time"
+  "fmt"
+  "time"
   "net/http"
   "log"
   "strings"
@@ -11,7 +11,7 @@ import (
   "bytes"
   "strconv"
 
-	"github.com/tarm/serial"
+  "github.com/tarm/serial"
   "github.com/gorilla/mux"
 )
 
