@@ -5,6 +5,7 @@ import (
 	"time"
   "net/http"
   "log"
+  "strings"
 
 
 	"github.com/tarm/serial"
@@ -55,7 +56,7 @@ func main() {
 
 func readSer(s *serial.Port, err error) {
   for {
-    time.Sleep(time.Second / 2)*/
+    /*time.Sleep(time.Second / 2)*/
 
     buf := make([]byte, 40)
     var content []byte
