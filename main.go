@@ -16,7 +16,7 @@ import (
 )
 
 type serManager struct {
-  ser *serial.Port
+  SerialPort *serial.Port
 }
 
 type SlotPower struct {
@@ -48,6 +48,7 @@ var greensKeeper = ""
 var greensKeeperToken = ""
 
 func main() {
+  /* grab the details for the greenskeeper server so we can talk to it */
   greensKeeper = os.Getenv("GK_SERVER")
   greensKeeperToken = os.Getenv("GK_TOKEN")
   if greensKeeper == "" {
@@ -57,20 +58,24 @@ func main() {
     log.Fatalln("GK_TOKEN env var not set")
   }
 
-  serman, err := NewSerMan()
+  /* create the serial manager to start the serial port communication */
+  serman, err := NewSerialManager()
   if err != nil {
     fmt.Println(err)
   }
 
-	go readSer(serman.ser, err)
+  /* start reading from port event handler */
+	go readSer(serman.SerialPort, err)
 
+  /* start the api */
   r := mux.NewRouter()
   r.HandleFunc("/api/v1/power/{i2cAddress}/{i2cSlot}/{powerStatus}", serman.sentToSer).Methods("GET")
   log.Println("Ready to serve consoles!")
   log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", 8585), r))
-  serman.ser.Close()
+  serman.SerialPort.Close()
 }
 
+/* function to send data to the serial port */
 func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
   urlvars := mux.Vars(r)
   i2cAddress, _ := strconv.Atoi(urlvars["i2cAddress"])
@@ -85,7 +90,7 @@ func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
   if err2 != nil {
     log.Println(err2)
   }
-  _, err := sm.ser.Write([]byte(string(result)+"\n"))
+  _, err := sm.SerialPort.Write([]byte(string(result)+"\n"))
   if err != nil {
     //fmt.Println(err)
   }
@@ -93,19 +98,20 @@ func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
   json.NewEncoder(w).Encode(Acceptance{Success: fmt.Sprintf("sent command")})
 }
 
-/* create ser man */
-func NewSerMan() (*serManager, error) {
+/* create serial manager */
+func NewSerialManager() (*serManager, error) {
   c := &serial.Config{Name: "/dev/ttyS0", Baud: 9600, ReadTimeout: time.Millisecond * 50}
   s, err := serial.OpenPort(c)
   if err != nil {
     fmt.Println(err)
   }
   newInv := &serManager{
-    ser:                 s,
+    SerialPort: s,
   }
   return newInv, nil
 }
 
+/* function to read data from serial port */
 func readSer(s *serial.Port, err error) {
   for {
     buf := make([]byte, 40)
@@ -114,16 +120,16 @@ func readSer(s *serial.Port, err error) {
       n, err := s.Read(buf)
 
       if err != nil {
-        //fmt.Println(err)
+        fmt.Println(err)
       }
       if n == 0 {
-        //fmt.Println("\nEOF")
         break
       }
-      //fmt.Println(string(buf[:n]))
       content = append(content, buf[:n]...)
     }
+    /* check the content we get from the serial port */
     if len(content) != 0 {
+      /* FIXME do better checking of the content to perform the right functions */
       fmt.Println(strings.TrimSpace(string(content)))
       slotAddress := SlotAddress{}
       if err := json.Unmarshal([]byte(content), &slotAddress); err != nil {
@@ -144,12 +150,9 @@ func readSer(s *serial.Port, err error) {
       i2ca := strconv.Itoa(slotAddress.I2CAddress)
       i2cs := strconv.Itoa(slotAddress.I2CSlot)
       req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/caddydata/i2c/" + i2ca + "/slot/" + i2cs, bytes.NewBuffer(result))
-      //req.Header.Add("Authorization", "Bearer "+token)
       req.Header.Add("apikey", token)
       req.Header.Set("Content-Type", "application/json")
       resp, _ := netClient.Do(req)
-      //body, _ := ioutil.ReadAll(resp.Body)
-      //log.Printf(string(body))
       defer resp.Body.Close()
     }
   }
