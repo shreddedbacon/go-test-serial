@@ -39,7 +39,6 @@ func NewSerMan() (*appContext, error) {
 }
 
 func main() {
-
   serman, err := NewSerMan()
   if err != nil {
     fmt.Println(err)
@@ -56,10 +55,6 @@ func main() {
 
 func readSer(s *serial.Port, err error) {
   for {
-    /*_, err = s.Write([]byte("bobtestbob\n"))
-    if err != nil {
-      //fmt.Println(err)
-    }
     time.Sleep(time.Second / 2)*/
 
     buf := make([]byte, 40)
@@ -80,7 +75,7 @@ func readSer(s *serial.Port, err error) {
     }
     //fmt.Println(string(content))
     if len(content) != 0 {
-      fmt.Println(string(content))
+      fmt.Println(strings.TrimSpace(string(content)))
     }
   }
 }
