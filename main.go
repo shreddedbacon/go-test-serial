@@ -51,7 +51,7 @@ func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
 
 /* create ser man */
 func NewSerMan() (*serManager, error) {
-  c := &serial.Config{Name: "/dev/ttyS0", Baud: 9600, ReadTimeout: time.Millisecond * 500}
+  c := &serial.Config{Name: "/dev/ttyS0", Baud: 9600, ReadTimeout: time.Millisecond * 50}
   s, err := serial.OpenPort(c)
   if err != nil {
     fmt.Println(err)
