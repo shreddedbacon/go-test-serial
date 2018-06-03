@@ -68,10 +68,11 @@ func readSer(s *serial.Port, err error) {
         //fmt.Println(err)
       }
       if n == 0 {
-        fmt.Println("\nEOF")
+        //fmt.Println("\nEOF")
         break
       }
-      fmt.Println(string(buf[:n]))
+      //fmt.Println(string(buf[:n]))
     }
+    fmt.Println(string(buf[:n]))
   }
 }
