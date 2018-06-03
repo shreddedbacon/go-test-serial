@@ -73,6 +73,8 @@ func readSer(s *serial.Port, err error) {
       }
       //fmt.Println(string(buf[:n]))
     }
-    fmt.Println(string(buf[:n]))
+    if string(buf[:0]) != "" {
+      fmt.Println(string(buf))
+    }
   }
 }
