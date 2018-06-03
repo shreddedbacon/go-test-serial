@@ -22,6 +22,14 @@ type SlotPower struct {
   PowerStatus        string  `json:"powerstatus"`
 }
 
+type ExceptionE struct {
+  Error string `json:"error"`
+}
+
+type Acceptance struct {
+  Success string `json:"success"`
+}
+
 func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
   urlvars := mux.Vars(r)
   jsonData := SlotPower{
@@ -37,7 +45,8 @@ func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
   if err != nil {
     //fmt.Println(err)
   }
-  w.Write([]byte(string(result)+"\n"))
+  //w.Write([]byte(string(result)+"\n"))
+  json.NewEncoder(w).Encode(Acceptance{Success: fmt.Sprintf("sent command")})
 }
 
 /* create ser man */
