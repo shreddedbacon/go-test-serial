@@ -27,7 +27,7 @@ type SlotPower struct {
 
 type SlotAddress struct {
   I2CAddress        int  `json:"i2ca"`
-  I2CSlot        int  `json:"i2s"`
+  I2CSlot        int  `json:"i2cs"`
 }
 
 type SlotInfo struct {
