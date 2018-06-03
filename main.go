@@ -69,11 +69,11 @@ func main() {
 
 func readSer(s *serial.Port, err error) {
   for {
-    _, err = s.Write([]byte("bobtestbob\n"))
+    /*_, err = s.Write([]byte("bobtestbob\n"))
     if err != nil {
       //fmt.Println(err)
     }
-    time.Sleep(time.Second / 2)
+    time.Sleep(time.Second / 2)*/
 
     buf := make([]byte, 40)
     for {
