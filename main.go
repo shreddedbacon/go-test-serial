@@ -143,9 +143,9 @@ func readSer(s *serial.Port, err error) {
       if err2 != nil {
         log.Println(err2)
       }
-      log.Println(slotAddress.I2CAddress)
-      log.Println(slotAddress.I2CSlot)
-      req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/caddydata/i2c/" + string(slotAddress.I2CAddress) + "/slot/" + string(slotAddress.I2CSlot), bytes.NewBuffer(result))
+      i2ca := strconv.Itoa(slotAddress.I2CAddress)
+      i2cs := strconv.Itoa(slotAddress.I2CSlot)
+      req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/caddydata/i2c/" + i2ca + "/slot/" + i2cs, bytes.NewBuffer(result))
       //req.Header.Add("Authorization", "Bearer "+token)
       req.Header.Add("apikey", token)
       req.Header.Set("Content-Type", "application/json")
