@@ -15,15 +15,6 @@ type appContext struct {
   ser *serial.Port
 }
 
-/*type appHandler struct {
-	*appContext
-	H func(*appContext, http.ResponseWriter, *http.Request) (int, error)
-}*/
-
-/*type appHandler2 interface {
-  sentToSer(w http.ResponseWriter, r *http.Request)
-}*/
-
 func (ah *appContext) sentToSer(w http.ResponseWriter, r *http.Request) {
   _, err := ah.ser.Write([]byte("bobtestbob\n"))
   if err != nil {
@@ -46,19 +37,13 @@ func NewSerMan() (*appContext, error) {
 }
 
 func main() {
-  /*c := &serial.Config{Name: "/dev/ttyS0", Baud: 9600, ReadTimeout: time.Millisecond * 500}
-  s, err := serial.OpenPort(c)
-  if err != nil {
-    fmt.Println(err)
-  }*/
+
   serman, err := NewSerMan()
   if err != nil {
     fmt.Println(err)
   }
 
 	go readSer(serman.ser, err)
-
-  /*context := &appContext{ser: s}*/
 
   r := mux.NewRouter()
   r.HandleFunc("/api/v1/consoles", serman.sentToSer).Methods("GET")
@@ -83,7 +68,7 @@ func readSer(s *serial.Port, err error) {
         //fmt.Println(err)
       }
       if n == 0 {
-        //fmt.Println("\nEOF")
+        fmt.Println("\nEOF")
         break
       }
       fmt.Println(string(buf[:n]))
