@@ -7,6 +7,8 @@ import (
   "log"
   "strings"
   "encoding/json"
+  "os"
+  "bytes"
 
 	"github.com/tarm/serial"
   "github.com/gorilla/mux"
@@ -17,9 +19,20 @@ type serManager struct {
 }
 
 type SlotPower struct {
-  I2CAddress        string  `json:"i2caddress"`
-  I2CSlot        string  `json:"i2slot"`
-  PowerStatus        string  `json:"powerstatus"`
+  I2CAddress        int  `json:"i2caddress"`
+  I2CSlot        int  `json:"i2slot"`
+  PowerStatus        int  `json:"powerstatus"`
+}
+
+type SlotAddress struct {
+  I2CAddress        int  `json:"i2ca"`
+  I2CSlot        int  `json:"i2s"`
+}
+
+type SlotInfo struct {
+  PowerStatus        int  `json:"ps"`
+  AlwaysOn        int  `json:"ao"`
+  CaddyType        int  `json:"ct"`
 }
 
 type ExceptionE struct {
@@ -29,6 +42,9 @@ type ExceptionE struct {
 type Acceptance struct {
   Success string `json:"success"`
 }
+
+var greensKeeper = ""
+var greensKeeperToken = ""
 
 func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
   urlvars := mux.Vars(r)
@@ -63,6 +79,15 @@ func NewSerMan() (*serManager, error) {
 }
 
 func main() {
+  greensKeeper = os.Getenv("GK_SERVER")
+  greensKeeperToken = os.Getenv("GK_TOKEN")
+  if greensKeeper == "" {
+    log.Fatalln("GK_SERVER env var not set")
+  }
+  if greensKeeperToken == "" {
+    log.Fatalln("GK_TOKEN env var not set")
+  }
+
   serman, err := NewSerMan()
   if err != nil {
     fmt.Println(err)
@@ -98,6 +123,30 @@ func readSer(s *serial.Port, err error) {
     //fmt.Println(string(content))
     if len(content) != 0 {
       fmt.Println(strings.TrimSpace(string(content)))
+      slotAddress := SlotAddress{}
+      if err := json.Unmarshal([]byte(content), &slotAddress); err != nil {
+        log.Println(err)
+      }
+      slotInfo := SlotInfo{}
+      if err := json.Unmarshal([]byte(content), &slotInfo); err != nil {
+        log.Println(err)
+      }
+      var netClient = &http.Client{
+        Timeout: time.Second * 10,
+      }
+      token := greensKeeperToken
+      result, err2 := json.Marshal(slotInfo)
+      if err2 != nil {
+        log.Println(err2)
+      }
+      req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/caddydata/i2c/" + slotAddress.I2CAddress + "/slot/" + slotAddress.I2CSlot, bytes.NewBuffer(result))
+      //req.Header.Add("Authorization", "Bearer "+token)
+      req.Header.Add("apikey", token)
+      req.Header.Set("Content-Type", "application/json")
+      resp, _ := netClient.Do(req)
+      //body, _ := ioutil.ReadAll(resp.Body)
+      //log.Printf(string(body))
+      defer resp.Body.Close()
     }
   }
 }
