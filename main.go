@@ -120,7 +120,7 @@ func readSer(s *serial.Port, err error) {
       n, err := s.Read(buf)
 
       if err != nil {
-        fmt.Println(err)
+        //fmt.Println(err)
       }
       if n == 0 {
         break
