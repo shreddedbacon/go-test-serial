@@ -90,7 +90,7 @@ func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
   if err2 != nil {
     log.Println(err2)
   }
-  _, err := sm.SerialPort.Write([]byte(string(result)+"\n"))
+  _, err := sm.SerialPort.Write([]byte(string(result)+"\n\n"))
   if err != nil {
     //fmt.Println(err)
   }
