@@ -21,7 +21,7 @@ type serManager struct {
 
 type SlotPower struct {
   I2CAddress        int  `json:"i2caddress"`
-  I2CSlot        int  `json:"i2slot"`
+  I2CSlot        int  `json:"i2cslot"`
   PowerStatus        int  `json:"powercon"`
 }
 
@@ -94,7 +94,7 @@ func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
   if err != nil {
     //fmt.Println(err)
   }
-  fmt.Println(string(result))
+  fmt.Println("result write: "+string(result))
   //w.Write([]byte(string(result)+"\n"))
   json.NewEncoder(w).Encode(Acceptance{Success: fmt.Sprintf("sent command")})
 }
@@ -131,7 +131,7 @@ func readSer(s *serial.Port, err error) {
     /* check the content we get from the serial port */
     if len(content) != 0 {
       /* FIXME do better checking of the content to perform the right functions */
-      fmt.Println(strings.TrimSpace(string(content)))
+      fmt.Println("result read: "+strings.TrimSpace(string(content)))
       slotAddress := SlotAddress{}
       if err := json.Unmarshal([]byte(content), &slotAddress); err != nil {
         log.Println(err)
