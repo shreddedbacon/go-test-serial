@@ -94,6 +94,7 @@ func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
   if err != nil {
     //fmt.Println(err)
   }
+  fmt.Println(string(result))
   //w.Write([]byte(string(result)+"\n"))
   json.NewEncoder(w).Encode(Acceptance{Success: fmt.Sprintf("sent command")})
 }
@@ -118,8 +119,8 @@ func readSer(s *serial.Port, err error) {
     var content []byte
     for {
       n, err := s.Read(buf)
-
       if err != nil {
+        //need to fix this so it stops spewing "EOF" to screen
         //fmt.Println(err)
       }
       if n == 0 {
