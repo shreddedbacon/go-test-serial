@@ -131,30 +131,34 @@ func readSer(s *serial.Port, err error) {
     /* check the content we get from the serial port */
     if len(content) != 0 {
       /* FIXME do better checking of the content to perform the right functions */
-      fmt.Println("result read: "+strings.TrimSpace(string(content)))
-      slotAddress := SlotAddress{}
-      if err := json.Unmarshal([]byte(content), &slotAddress); err != nil {
-        log.Println(err)
+      for b := range serialOutput {
+        fmt.Println("result read: "+strings.TrimSpace(string(serialOutput[b])))
+        slotAddress := SlotAddress{}
+        if err := json.Unmarshal([]byte(strings.TrimSpace(string(serialOutput[b]))), &slotAddress); err != nil {
+          fmt.Println("err1")
+          log.Println(err)
+        }
+        slotInfo := SlotInfo{}
+        if err := json.Unmarshal([]byte(strings.TrimSpace(string(serialOutput[b]))), &slotInfo); err != nil {
+          fmt.Println("err2")
+          log.Println(err)
+        }
+        var netClient = &http.Client{
+          Timeout: time.Second * 10,
+        }
+        token := greensKeeperToken
+        result, err2 := json.Marshal(slotInfo)
+        if err2 != nil {
+          log.Println(err2)
+        }
+        i2ca := strconv.Itoa(slotAddress.I2CAddress)
+        i2cs := strconv.Itoa(slotAddress.I2CSlot)
+        req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/caddydata/i2c/" + i2ca + "/slot/" + i2cs, bytes.NewBuffer(result))
+        req.Header.Add("apikey", token)
+        req.Header.Set("Content-Type", "application/json")
+        resp, _ := netClient.Do(req)
+        defer resp.Body.Close()
       }
-      slotInfo := SlotInfo{}
-      if err := json.Unmarshal([]byte(content), &slotInfo); err != nil {
-        log.Println(err)
-      }
-      var netClient = &http.Client{
-        Timeout: time.Second * 10,
-      }
-      token := greensKeeperToken
-      result, err2 := json.Marshal(slotInfo)
-      if err2 != nil {
-        log.Println(err2)
-      }
-      i2ca := strconv.Itoa(slotAddress.I2CAddress)
-      i2cs := strconv.Itoa(slotAddress.I2CSlot)
-      req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/caddydata/i2c/" + i2ca + "/slot/" + i2cs, bytes.NewBuffer(result))
-      req.Header.Add("apikey", token)
-      req.Header.Set("Content-Type", "application/json")
-      resp, _ := netClient.Do(req)
-      defer resp.Body.Close()
     }
   }
 }
