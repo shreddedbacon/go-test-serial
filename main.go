@@ -70,7 +70,7 @@ func main() {
   /* start the api */
   r := mux.NewRouter()
   r.HandleFunc("/api/v1/power/{i2cAddress}/{i2cSlot}/{powerStatus}", serman.sentToSer).Methods("GET")
-  log.Println("Ready to serve consoles!")
+  log.Println("Ready to check the backplanes!")
   log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", 8585), r))
   serman.SerialPort.Close()
 }
@@ -81,6 +81,9 @@ func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
   i2cAddress, _ := strconv.Atoi(urlvars["i2cAddress"])
   i2cSlot, _ := strconv.Atoi(urlvars["i2cSlot"])
   powerStatus, _ := strconv.Atoi(urlvars["powerStatus"])
+  //i2cAddress := urlvars["i2cAddress"]
+  //i2cSlot := urlvars["i2cSlot"]
+  //powerStatus := urlvars["powerStatus"]
   jsonData := SlotPower{
     I2CAddress: i2cAddress,
     I2CSlot: i2cSlot,
@@ -131,33 +134,40 @@ func readSer(s *serial.Port, err error) {
     /* check the content we get from the serial port */
     if len(content) != 0 {
       /* FIXME do better checking of the content to perform the right functions */
-      for b := range serialOutput {
-        fmt.Println("result read: "+strings.TrimSpace(string(serialOutput[b])))
-        slotAddress := SlotAddress{}
-        if err := json.Unmarshal([]byte(strings.TrimSpace(string(serialOutput[b]))), &slotAddress); err != nil {
-          fmt.Println("err1")
-          log.Println(err)
+      contents := strings.Split(string(content), "\n")
+      for b := range contents {
+        if contents[b] != "" {
+          if strings.Contains(string(contents[b]), "{") {
+            fmt.Println("result read: "+strings.TrimSpace(string(contents[b])))
+            slotAddress := SlotAddress{}
+            if err := json.Unmarshal([]byte(strings.TrimSpace(string(contents[b]))), &slotAddress); err != nil {
+              fmt.Println("err1")
+              log.Println(err)
+            }
+            slotInfo := SlotInfo{}
+            if err := json.Unmarshal([]byte(strings.TrimSpace(string(contents[b]))), &slotInfo); err != nil {
+              fmt.Println("err2")
+              log.Println(err)
+            }
+            var netClient = &http.Client{
+              Timeout: time.Second * 10,
+            }
+            token := greensKeeperToken
+            result, err2 := json.Marshal(slotInfo)
+            if err2 != nil {
+              log.Println(err2)
+            }
+            i2ca := strconv.Itoa(slotAddress.I2CAddress)
+            i2cs := strconv.Itoa(slotAddress.I2CSlot)
+            req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/caddydata/i2c/" + i2ca + "/slot/" + i2cs, bytes.NewBuffer(result))
+            req.Header.Add("apikey", token)
+            req.Header.Set("Content-Type", "application/json")
+            resp, _ := netClient.Do(req)
+            defer resp.Body.Close()
+          } else {
+            fmt.Println("not json output: "+strings.TrimSpace(string(contents[b])))
+          }
         }
-        slotInfo := SlotInfo{}
-        if err := json.Unmarshal([]byte(strings.TrimSpace(string(serialOutput[b]))), &slotInfo); err != nil {
-          fmt.Println("err2")
-          log.Println(err)
-        }
-        var netClient = &http.Client{
-          Timeout: time.Second * 10,
-        }
-        token := greensKeeperToken
-        result, err2 := json.Marshal(slotInfo)
-        if err2 != nil {
-          log.Println(err2)
-        }
-        i2ca := strconv.Itoa(slotAddress.I2CAddress)
-        i2cs := strconv.Itoa(slotAddress.I2CSlot)
-        req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/caddydata/i2c/" + i2ca + "/slot/" + i2cs, bytes.NewBuffer(result))
-        req.Header.Add("apikey", token)
-        req.Header.Set("Content-Type", "application/json")
-        resp, _ := netClient.Do(req)
-        defer resp.Body.Close()
       }
     }
   }
