@@ -67,7 +67,7 @@ func main() {
   }
 
   /* create the serial manager to start the serial port communication */
-  serman, err := NewSerialManager(serialDevice, baudRate)
+  serman, err := NewSerialManager(serialDevice, serialDeviceBaud)
   if err != nil {
     fmt.Println(err)
   }
@@ -111,7 +111,7 @@ func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
 }
 
 /* create serial manager */
-func NewSerialManager(string serialDevice, int baudRate) (*serManager, error) {
+func NewSerialManager(serialDevice string, baudRate int) (*serManager, error) {
   c := &serial.Config{Name: serialDevice, Baud: baudRate, ReadTimeout: time.Millisecond * 50}
   s, err := serial.OpenPort(c)
   if err != nil {
