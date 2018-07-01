@@ -51,15 +51,23 @@ func main() {
   /* grab the details for the greenskeeper server so we can talk to it */
   greensKeeper = os.Getenv("GK_SERVER")
   greensKeeperToken = os.Getenv("GK_TOKEN")
+  serialDevice := os.Getenv("SERIAL_DEVICE")
+  serialDeviceBaud := os.Getenv("SERIAL_DEVICE_BAUD")
   if greensKeeper == "" {
     log.Fatalln("GK_SERVER env var not set")
   }
   if greensKeeperToken == "" {
     log.Fatalln("GK_TOKEN env var not set")
   }
+  if serialDevice == "" {
+    log.Fatalln("SERIAL_DEVICE env var not set")
+  }
+  if serialDeviceBaud == "" {
+    log.Fatalln("SERIAL_DEVICE_BAUD env var not set")
+  }
 
   /* create the serial manager to start the serial port communication */
-  serman, err := NewSerialManager()
+  serman, err := NewSerialManager(serialDevice, baudRate)
   if err != nil {
     fmt.Println(err)
   }
@@ -71,7 +79,7 @@ func main() {
   r := mux.NewRouter()
   r.HandleFunc("/api/v1/power/{i2cAddress}/{i2cSlot}/{powerStatus}", serman.sentToSer).Methods("GET")
   log.Println("Ready to check the backplanes!")
-  log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", 8585), r))
+  log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", 8080), r))
   serman.SerialPort.Close()
 }
 
@@ -103,8 +111,8 @@ func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
 }
 
 /* create serial manager */
-func NewSerialManager() (*serManager, error) {
-  c := &serial.Config{Name: "/dev/ttyS0", Baud: 9600, ReadTimeout: time.Millisecond * 50}
+func NewSerialManager(string serialDevice, int baudRate) (*serManager, error) {
+  c := &serial.Config{Name: serialDevice, Baud: baudRate, ReadTimeout: time.Millisecond * 50}
   s, err := serial.OpenPort(c)
   if err != nil {
     fmt.Println(err)
