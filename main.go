@@ -67,7 +67,8 @@ func main() {
   }
 
   /* create the serial manager to start the serial port communication */
-  serman, err := NewSerialManager(serialDevice, serialDeviceBaud)
+  baudRate, _ := strconv.Atoi(serialDeviceBaud)
+  serman, err := NewSerialManager(serialDevice, baudRate)
   if err != nil {
     fmt.Println(err)
   }
