@@ -8,8 +8,8 @@ RUN go build -o spackler *.go
 
 FROM arm32v7/ubuntu
 
-COPY --from=builder /go/src/goser/spackler /app/spackler/.
 WORKDIR /app/spackler
+COPY --from=builder /go/src/goser/spackler /app/spackler/.
 
 EXPOSE 8080
 
