@@ -172,7 +172,11 @@ func readSer(s *serial.Port, err error) {
             req.Header.Add("apikey", token)
             req.Header.Set("Content-Type", "application/json")
             resp, _ := netClient.Do(req)
-            defer resp.Body.Close()
+            /* FIXME Check for connection! */
+            if check200(resp.StatusCode) {
+              fmt.Println("200")
+            }
+            resp.Body.Close()
           } else {
             fmt.Println("not json output: "+strings.TrimSpace(string(contents[b])))
           }
@@ -180,4 +184,12 @@ func readSer(s *serial.Port, err error) {
       }
     }
   }
+}
+
+func check200(httpcode int) bool {
+	if httpcode == 200 {
+		return true
+	} else {
+		return false
+	}
 }
