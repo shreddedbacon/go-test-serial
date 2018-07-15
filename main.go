@@ -133,9 +133,9 @@ func readSer(s *serial.Port, err error) {
       n, err := s.Read(buf)
       if err != nil {
         //need to fix this so it stops spewing "EOF" to screen
-        //if err != "EOF" {
+        if err.Error() != "EOF" {
           fmt.Println(err)
-        //}
+        }
       }
       if n == 0 {
         break
