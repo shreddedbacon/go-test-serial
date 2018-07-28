@@ -173,12 +173,16 @@ func readSer(s *serial.Port, err error) {
             req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/caddydata/i2c/" + i2ca + "/slot/" + i2cs, bytes.NewBuffer(result))
             req.Header.Add("apikey", token)
             req.Header.Set("Content-Type", "application/json")
-            resp, _ := netClient.Do(req)
+            resp, resperr := netClient.Do(req)
             /* FIXME Check for connection! */
-            if check200(resp.StatusCode) {
-              fmt.Println("200")
+            if resperr != nil {
+              log.Println(resperr)
+            } else {
+              if check200(resp.StatusCode) {
+                fmt.Println("200")
+              }
+              resp.Body.Close()
             }
-            resp.Body.Close()
           } else {
             fmt.Println("not json output: "+strings.TrimSpace(string(contents[b])))
           }
