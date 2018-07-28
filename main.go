@@ -104,7 +104,7 @@ func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
   }
   _, err := sm.SerialPort.Write([]byte(string(result)+"\n"))
   if err != nil {
-    //fmt.Println(err)
+    log.Println(err)
   }
   log.Println("result write: "+string(result))
   //w.Write([]byte(string(result)+"\n"))
