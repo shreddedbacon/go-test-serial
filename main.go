@@ -70,7 +70,7 @@ func main() {
   baudRate, _ := strconv.Atoi(serialDeviceBaud)
   serman, err := NewSerialManager(serialDevice, baudRate)
   if err != nil {
-    fmt.Println(err)
+    log.Println(err)
   }
 
   /* start reading from port event handler */
@@ -106,7 +106,7 @@ func (sm *serManager) sentToSer(w http.ResponseWriter, r *http.Request) {
   if err != nil {
     //fmt.Println(err)
   }
-  fmt.Println("result write: "+string(result))
+  log.Println("result write: "+string(result))
   //w.Write([]byte(string(result)+"\n"))
   json.NewEncoder(w).Encode(Acceptance{Success: fmt.Sprintf("sent command")})
 }
@@ -116,7 +116,7 @@ func NewSerialManager(serialDevice string, baudRate int) (*serManager, error) {
   c := &serial.Config{Name: serialDevice, Baud: baudRate, ReadTimeout: time.Millisecond * 50}
   s, err := serial.OpenPort(c)
   if err != nil {
-    fmt.Println(err)
+    log.Println(err)
   }
   newInv := &serManager{
     SerialPort: s,
@@ -134,7 +134,7 @@ func readSer(s *serial.Port, err error) {
       if err != nil {
         //need to fix this so it stops spewing "EOF" to screen
         if err.Error() != "EOF" {
-          fmt.Println(err)
+          log.Println(err)
         }
       }
       if n == 0 {
@@ -149,15 +149,15 @@ func readSer(s *serial.Port, err error) {
       for b := range contents {
         if contents[b] != "" {
           if strings.Contains(string(contents[b]), "{") {
-            fmt.Println("result read: "+strings.TrimSpace(string(contents[b])))
+            log.Println("result read: "+strings.TrimSpace(string(contents[b])))
             slotAddress := SlotAddress{}
             if err := json.Unmarshal([]byte(strings.TrimSpace(string(contents[b]))), &slotAddress); err != nil {
-              fmt.Println("err1")
+              //fmt.Println("err1")
               log.Println(err)
             }
             slotInfo := SlotInfo{}
             if err := json.Unmarshal([]byte(strings.TrimSpace(string(contents[b]))), &slotInfo); err != nil {
-              fmt.Println("err2")
+              //fmt.Println("err2")
               log.Println(err)
             }
             var netClient = &http.Client{
@@ -179,12 +179,13 @@ func readSer(s *serial.Port, err error) {
               log.Println(resperr)
             } else {
               if check200(resp.StatusCode) {
-                fmt.Println("200")
+                //fmt.Println("Successful update")
+                log.Println("Successful update")
               }
               resp.Body.Close()
             }
           } else {
-            fmt.Println("not json output: "+strings.TrimSpace(string(contents[b])))
+            log.Println("not json output: "+strings.TrimSpace(string(contents[b])))
           }
         }
       }
