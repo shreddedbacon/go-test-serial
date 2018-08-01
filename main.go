@@ -44,20 +44,20 @@ type Acceptance struct {
   Success string `json:"success"`
 }
 
-var greensKeeper = ""
-var greensKeeperToken = ""
+var bushwodServer = ""
+var bushwoodToken = ""
 
 func main() {
-  /* grab the details for the greenskeeper server so we can talk to it */
-  greensKeeper = os.Getenv("GK_SERVER")
-  greensKeeperToken = os.Getenv("GK_TOKEN")
+  /* grab the details for the bushwod server so we can talk to it */
+  bushwodServer = os.Getenv("BUSHWOOD_SERVER")
+  bushwoodToken = os.Getenv("BUSHWOOD_TOKEN")
   serialDevice := os.Getenv("SERIAL_DEVICE")
   serialDeviceBaud := os.Getenv("SERIAL_DEVICE_BAUD")
-  if greensKeeper == "" {
-    log.Fatalln("GK_SERVER env var not set")
+  if bushwodServer == "" {
+    log.Fatalln("BUSHWOOD_SERVER env var not set")
   }
-  if greensKeeperToken == "" {
-    log.Fatalln("GK_TOKEN env var not set")
+  if bushwoodToken == "" {
+    log.Fatalln("BUSHWOOD_TOKEN env var not set")
   }
   if serialDevice == "" {
     log.Fatalln("SERIAL_DEVICE env var not set")
@@ -163,14 +163,14 @@ func readSer(s *serial.Port, err error) {
             var netClient = &http.Client{
               Timeout: time.Second * 10,
             }
-            token := greensKeeperToken
+            token := bushwoodToken
             result, err2 := json.Marshal(slotInfo)
             if err2 != nil {
               log.Println(err2)
             }
             i2ca := strconv.Itoa(slotAddress.I2CAddress)
             i2cs := strconv.Itoa(slotAddress.I2CSlot)
-            req, _ := http.NewRequest("POST", greensKeeper+"/api/v1/caddydata/i2c/" + i2ca + "/slot/" + i2cs, bytes.NewBuffer(result))
+            req, _ := http.NewRequest("POST", bushwodServer+"/api/v1/caddydata/i2c/" + i2ca + "/slot/" + i2cs, bytes.NewBuffer(result))
             req.Header.Add("apikey", token)
             req.Header.Set("Content-Type", "application/json")
             resp, resperr := netClient.Do(req)
