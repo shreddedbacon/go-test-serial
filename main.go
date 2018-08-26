@@ -44,6 +44,18 @@ type Acceptance struct {
   Success string `json:"success"`
 }
 
+// Define a slot message type
+type SlotMessage struct {
+	Message string `json:"message"`
+	Slots   []struct {
+		I2CAddress int `json:"i2ca"`
+		I2CSlot int `json:"i2cs"`
+		PowerStatus   int `json:"ps"`
+		AlwaysOn   int `json:"ao"`
+		CaddyType   int `json:"ct"`
+	} `json:"slots"`
+}
+
 var bushwodServer = ""
 var bushwoodToken = ""
 
@@ -148,6 +160,50 @@ func readSer(s *serial.Port, err error) {
       contents := strings.Split(string(content), "\n")
       for b := range contents {
         if contents[b] != "" {
+          slotMessage := SlotMessage{}
+          if err := json.Unmarshal([]byte(strings.TrimSpace(string(stringval))), &slotMessage); err != nil {
+            log.Println(err)
+          } else {
+          	for _, v := range slotAddress.Slots {
+          		slotAddress := SlotAddress{
+          			I2CAddress: v.I2CAddress,
+          			I2CSlot: v.I2CSlot,
+          		}
+              slotInfo := SlotInfo{
+          			PowerStatus: v.PowerStatus,
+          			AlwaysOn: v.AlwaysOn,
+          			CaddyType: v.CaddyType,
+          		}
+              var netClient = &http.Client{
+                Timeout: time.Second * 10,
+              }
+              token := bushwoodToken
+              result, err2 := json.Marshal(slotInfo)
+              if err2 != nil {
+                log.Println(err2)
+              }
+              i2ca := strconv.Itoa(slotAddress.I2CAddress)
+              i2cs := strconv.Itoa(slotAddress.I2CSlot)
+              req, _ := http.NewRequest("POST", bushwodServer+"/api/v1/caddydata/i2c/" + i2ca + "/slot/" + i2cs, bytes.NewBuffer(result))
+              req.Header.Add("apikey", token)
+              req.Header.Set("Content-Type", "application/json")
+              resp, resperr := netClient.Do(req)
+              */
+              /* FIXME Check for connection! */
+
+              if resperr != nil {
+                log.Println(resperr)
+              } else {
+                if check200(resp.StatusCode) {
+                  //fmt.Println("Successful update")
+                  log.Println("Successful update")
+                }
+                resp.Body.Close()
+              }
+          	}
+          }
+
+          /* DELETE THIS BLOCK ----------->
           if strings.Contains(string(contents[b]), "{") {
             log.Println("result read: "+strings.TrimSpace(string(contents[b])))
             slotAddress := SlotAddress{}
@@ -174,7 +230,9 @@ func readSer(s *serial.Port, err error) {
             req.Header.Add("apikey", token)
             req.Header.Set("Content-Type", "application/json")
             resp, resperr := netClient.Do(req)
+            */
             /* FIXME Check for connection! */
+            /*
             if resperr != nil {
               log.Println(resperr)
             } else {
@@ -187,6 +245,7 @@ func readSer(s *serial.Port, err error) {
           } else {
             log.Println("not json output: "+strings.TrimSpace(string(contents[b])))
           }
+          <----------- DELETE THIS BLOCK */
         }
       }
     }
