@@ -161,10 +161,10 @@ func readSer(s *serial.Port, err error) {
       for b := range contents {
         if contents[b] != "" {
           slotMessage := SlotMessage{}
-          if err := json.Unmarshal([]byte(strings.TrimSpace(string(stringval))), &slotMessage); err != nil {
+          if err := json.Unmarshal([]byte(strings.TrimSpace(string(contents[b]))), &slotMessage); err != nil {
             log.Println(err)
           } else {
-          	for _, v := range slotAddress.Slots {
+          	for _, v := range slotMessage.Slots {
           		slotAddress := SlotAddress{
           			I2CAddress: v.I2CAddress,
           			I2CSlot: v.I2CSlot,
@@ -188,7 +188,7 @@ func readSer(s *serial.Port, err error) {
               req.Header.Add("apikey", token)
               req.Header.Set("Content-Type", "application/json")
               resp, resperr := netClient.Do(req)
-              */
+
               /* FIXME Check for connection! */
 
               if resperr != nil {
