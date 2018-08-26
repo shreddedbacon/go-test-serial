@@ -160,8 +160,10 @@ func readSer(s *serial.Port, err error) {
       contents := strings.Split(string(content), "\n")
       for b := range contents {
         if contents[b] != "" {
+          log.Println(contents[b])
           slotMessage := SlotMessage{}
           if err := json.Unmarshal([]byte(strings.TrimSpace(string(contents[b]))), &slotMessage); err != nil {
+            log.Println("Bad Message")
             log.Println(err)
           } else {
           	for _, v := range slotMessage.Slots {
